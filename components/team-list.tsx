@@ -36,7 +36,9 @@ export function TeamList({ teams }: TeamListProps) {
   const handleSave = (team: Team) => {
     setShowForm(false);
     setExtractedData(null);
-    // Refresh the page to get updated data from the server
+    // Add the new team to local state immediately
+    setTeamList([team, ...teamList]);
+    // Also refresh the page to sync with server
     router.refresh();
   };
 
@@ -94,55 +96,84 @@ export function TeamList({ teams }: TeamListProps) {
       )}
 
       <div className="space-y-6">
-        {teamList.map((team) => (
-          <Link key={team.id} href={`/teams/${team.id}`} className="block">
-            <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-semibold">{team.team_name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {team.description}
-                    </p>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {team.contact}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Products</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {team.products.map((product, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-xs"
-                        >
-                          {product}
-                        </span>
-                      ))}
+        {teamList.map((team, idx) => {
+          const emails = Array.isArray(team.contact_email)
+            ? team.contact_email
+            : [team.contact_email];
+          const displayEmails = emails.slice(0, 3);
+          const hasMoreEmails = emails.length > 3;
+
+          const displayProducts = team.products.slice(0, 2);
+          const remainingProducts = team.products.length - 2;
+
+          const displayIssues = team.issues_handled.slice(0, 2);
+          const remainingIssues = team.issues_handled.length - 2;
+
+          const displayDescription = team.description.replace(/\n/g, ' ');
+
+          return (
+            <Link key={idx} href={`/teams/${encodeURIComponent(team.team_name)}`} className="block">
+              <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold">{team.team_name}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-3 overflow-hidden">
+                        {displayDescription}
+                      </p>
+                    </div>
+                    <div className="text-sm text-muted-foreground text-right flex-shrink-0 min-w-0 max-w-[200px]">
+                      <div className="truncate">
+                        {displayEmails.join(", ")}
+                        {hasMoreEmails && "..."}
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Issues Handled</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {team.issues_handled.map((issue, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-xs"
-                        >
-                          {issue}
-                        </span>
-                      ))}
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Products</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {displayProducts.map((product, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-xs"
+                          >
+                            {product}
+                          </span>
+                        ))}
+                        {remainingProducts > 0 && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-xs text-muted-foreground">
+                            ... +{remainingProducts} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Issues Handled</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {displayIssues.map((issue, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-xs"
+                          >
+                            {issue}
+                          </span>
+                        ))}
+                        {remainingIssues > 0 && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-secondary text-xs text-muted-foreground">
+                            ... +{remainingIssues} more
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

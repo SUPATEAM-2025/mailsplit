@@ -1,6 +1,6 @@
 import { GET, POST } from '@/app/api/teams/route';
 import { NextRequest } from 'next/server';
-import { mockTeams, mockTeam } from '../setup/mocks';
+import { mockTeams, mockTeam } from '../setup/test-mocks';
 
 // Mock the supabase module
 jest.mock('@/lib/supabase', () => ({

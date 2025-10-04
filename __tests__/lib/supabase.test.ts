@@ -1,15 +1,10 @@
-import { getOrCreateDefaultCompany } from '@/lib/supabase';
-import { mockSupabaseClient, resetMockSupabase } from '../setup/mocks';
+// Mock the supabase module first
+jest.mock('@/lib/supabase');
 
-// Mock the supabase client
-jest.mock('@/lib/supabase', () => ({
-  supabase: mockSupabaseClient,
-  getOrCreateDefaultCompany: jest.fn(),
-}));
+import { getOrCreateDefaultCompany } from '@/lib/supabase';
 
 describe('Supabase Utilities', () => {
   beforeEach(() => {
-    resetMockSupabase();
     jest.clearAllMocks();
   });
 

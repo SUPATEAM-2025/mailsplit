@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '../setup/test-utils';
 import { TeamList } from '@/components/team-list';
-import { mockTeams } from '../setup/mocks';
+import { mockTeams } from '../setup/test-mocks';
 
 // Mock next/link
 jest.mock('next/link', () => {

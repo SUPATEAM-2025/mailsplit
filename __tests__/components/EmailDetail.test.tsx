@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '../setup/test-utils';
+import { render, screen, fireEvent, waitFor, act } from '../setup/test-utils';
 import { EmailDetail } from '@/components/email-detail';
-import { mockEmail, mockTeams } from '../setup/mocks';
+import { mockEmail, mockTeams } from '../setup/test-mocks';
 import userEvent from '@testing-library/user-event';
 
 // Mock format-date utility
@@ -64,7 +64,9 @@ describe('EmailDetail Component', () => {
     });
 
     // Fast-forward time to trigger the debounced save
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -88,7 +90,9 @@ describe('EmailDetail Component', () => {
     });
 
     // Fast-forward time to trigger the debounced save
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
@@ -110,7 +114,9 @@ describe('EmailDetail Component', () => {
     });
 
     // Fast-forward time
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Saving...')).toBeInTheDocument();
@@ -167,7 +173,9 @@ describe('EmailDetail Component', () => {
       target: { value: 'New notes' },
     });
 
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
 
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -186,11 +194,17 @@ describe('EmailDetail Component', () => {
 
     // Make multiple rapid changes
     fireEvent.change(notesTextarea, { target: { value: 'First' } });
-    jest.advanceTimersByTime(500);
+    await act(async () => {
+      jest.advanceTimersByTime(500);
+    });
     fireEvent.change(notesTextarea, { target: { value: 'Second' } });
-    jest.advanceTimersByTime(500);
+    await act(async () => {
+      jest.advanceTimersByTime(500);
+    });
     fireEvent.change(notesTextarea, { target: { value: 'Third' } });
-    jest.advanceTimersByTime(1000);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
 
     // Should only call fetch once after the last change
     await waitFor(() => {

@@ -1,6 +1,6 @@
 import { render, screen } from '../setup/test-utils';
 import { EmailList } from '@/components/email-list';
-import { mockEmails, mockTeams } from '../setup/mocks';
+import { mockEmails, mockTeams } from '../setup/test-mocks';
 
 // Mock next/link
 jest.mock('next/link', () => {

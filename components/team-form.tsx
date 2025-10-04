@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { Team } from "@/lib/types";
+import { toast } from "sonner";
 
 interface TeamFormProps {
   initialData?: Partial<Team> | null;
@@ -20,20 +21,26 @@ export function TeamForm({ initialData, onClose, onSave }: TeamFormProps) {
     description: initialData?.description || "",
     products: initialData?.products?.join(", ") || "",
     issues_handled: initialData?.issues_handled?.join(", ") || "",
-    contact: initialData?.contact || "",
+    contact_email: Array.isArray(initialData?.contact_email)
+      ? initialData.contact_email.join(", ")
+      : initialData?.contact_email || "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isSubmitting) return; // Prevent multiple submissions
+
     const team: Team = {
-      id: initialData?.id || Math.random().toString(36).substr(2, 9),
       team_name: formData.team_name,
       description: formData.description,
       products: formData.products.split(",").map((p) => p.trim()).filter(Boolean),
       issues_handled: formData.issues_handled.split(",").map((i) => i.trim()).filter(Boolean),
-      contact: formData.contact,
+      contact_email: formData.contact_email.split(",").map((e) => e.trim()).filter(Boolean),
     };
+
+    setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/teams', {
@@ -48,10 +55,12 @@ export function TeamForm({ initialData, onClose, onSave }: TeamFormProps) {
         throw new Error('Failed to save team');
       }
 
+      toast.success('Team created successfully!');
       onSave(team);
     } catch (error) {
       console.error('Error saving team:', error);
-      alert('Failed to save team. Please try again.');
+      toast.error('Failed to save team. Please try again.');
+      setIsSubmitting(false);
     }
   };
 
@@ -141,26 +150,42 @@ export function TeamForm({ initialData, onClose, onSave }: TeamFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="contact" className="text-sm font-medium">
-              Contact
+            <label htmlFor="contact_email" className="text-sm font-medium">
+              Contact Emails
             </label>
             <Input
-              id="contact"
-              type="email"
-              value={formData.contact}
+              id="contact_email"
+              value={formData.contact_email}
               onChange={(e) =>
-                setFormData({ ...formData, contact: e.target.value })
+                setFormData({ ...formData, contact_email: e.target.value })
               }
-              placeholder="team@company.com"
+              placeholder="team@company.com, support@company.com"
               required
             />
+            <p className="text-xs text-muted-foreground">
+              Enter emails separated by commas
+            </p>
           </div>
 
           <div className="flex gap-2 justify-end pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit">Save Team</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Team'
+              )}
+            </Button>
           </div>
         </form>
       </CardContent>

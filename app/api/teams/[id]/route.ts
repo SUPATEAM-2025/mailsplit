@@ -8,10 +8,11 @@ interface RouteParams {
   };
 }
 
-// GET single team by ID
+// GET single team by team_name
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const company = await getOrCreateDefaultCompany();
+    const teamName = decodeURIComponent(params.id);
 
     const { data: documents, error } = await supabase
       .from('documents')
@@ -23,11 +24,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Find the team with the matching ID in the parsed docs
+    // Find the team with the matching team_name in the parsed docs
     const teamDoc = documents?.find((doc) => {
       try {
         const team = JSON.parse(doc.docs || '{}');
-        return team.id === params.id;
+        return team.team_name === teamName;
       } catch (e) {
         return false;
       }
@@ -53,8 +54,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const updatedTeam: Team = await request.json();
     const company = await getOrCreateDefaultCompany();
+    const teamName = decodeURIComponent(params.id);
 
-    // Find the document with the matching team ID
+    // Find the document with the matching team_name
     const { data: documents, error: fetchError } = await supabase
       .from('documents')
       .select('*')
@@ -68,7 +70,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const teamDoc = documents?.find((doc) => {
       try {
         const team = JSON.parse(doc.docs || '{}');
-        return team.id === params.id;
+        return team.team_name === teamName;
       } catch (e) {
         return false;
       }
@@ -103,8 +105,9 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const company = await getOrCreateDefaultCompany();
+    const teamName = decodeURIComponent(params.id);
 
-    // Find the document with the matching team ID
+    // Find the document with the matching team_name
     const { data: documents, error: fetchError } = await supabase
       .from('documents')
       .select('*')
@@ -118,7 +121,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const teamDoc = documents?.find((doc) => {
       try {
         const team = JSON.parse(doc.docs || '{}');
-        return team.id === params.id;
+        return team.team_name === teamName;
       } catch (e) {
         return false;
       }

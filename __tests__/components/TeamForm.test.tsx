@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '../setup/test-utils';
 import { TeamForm } from '@/components/team-form';
-import { mockTeam } from '../setup/mocks';
+import { mockTeam } from '../setup/test-mocks';
 
 // Mock fetch
 global.fetch = jest.fn(() =>

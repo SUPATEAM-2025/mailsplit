@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { Team } from "@/lib/types";
+import { toast } from "sonner";
 
 interface TeamDetailProps {
   team: Team;
@@ -16,46 +18,80 @@ export function TeamDetail({ team }: TeamDetailProps) {
   const [description, setDescription] = useState(team.description);
   const [productsInput, setProductsInput] = useState(team.products.join(", "));
   const [issuesInput, setIssuesInput] = useState(team.issues_handled.join(", "));
-  const [contact, setContact] = useState(team.contact);
+  const [contactEmail, setContactEmail] = useState(
+    Array.isArray(team.contact_email)
+      ? team.contact_email.join(", ")
+      : team.contact_email
+  );
 
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAllProducts, setShowAllProducts] = useState(false);
+  const [showAllIssues, setShowAllIssues] = useState(false);
+  const [showAllEmails, setShowAllEmails] = useState(false);
 
   useEffect(() => {
+    const originalEmail = Array.isArray(team.contact_email)
+      ? team.contact_email.join(", ")
+      : team.contact_email;
+
     const changed =
       teamName !== team.team_name ||
       description !== team.description ||
       productsInput !== team.products.join(", ") ||
       issuesInput !== team.issues_handled.join(", ") ||
-      contact !== team.contact;
+      contactEmail !== originalEmail;
 
     setHasChanges(changed);
-  }, [teamName, description, productsInput, issuesInput, contact, team]);
+  }, [teamName, description, productsInput, issuesInput, contactEmail, team]);
 
   const handleCancel = () => {
+    if (isSubmitting) return;
+
     setTeamName(team.team_name);
     setDescription(team.description);
     setProductsInput(team.products.join(", "));
     setIssuesInput(team.issues_handled.join(", "));
-    setContact(team.contact);
+    setContactEmail(
+      Array.isArray(team.contact_email)
+        ? team.contact_email.join(", ")
+        : team.contact_email
+    );
     setHasChanges(false);
+    toast.info("Changes discarded");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (isSubmitting) return; // Prevent multiple submissions
+
     const updatedTeam: Team = {
-      ...team,
       team_name: teamName,
       description,
       products: productsInput.split(",").map((p) => p.trim()).filter(Boolean),
       issues_handled: issuesInput.split(",").map((i) => i.trim()).filter(Boolean),
-      contact,
+      contact_email: contactEmail.split(",").map((e) => e.trim()).filter(Boolean),
     };
 
-    console.log("Saving team:", updatedTeam);
-    setHasChanges(false);
+    setIsSubmitting(true);
+
+    try {
+      // Simulate API call - replace with actual API endpoint when available
+      console.log("Saving team:", updatedTeam);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+
+      toast.success("Changes saved successfully!");
+      setHasChanges(false);
+    } catch (error) {
+      console.error("Error saving team:", error);
+      toast.error("Failed to save changes. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const products = productsInput.split(",").map((p) => p.trim()).filter(Boolean);
   const issues = issuesInput.split(",").map((i) => i.trim()).filter(Boolean);
+  const emails = contactEmail.split(",").map((e) => e.trim()).filter(Boolean);
 
   return (
     <>
@@ -79,17 +115,48 @@ export function TeamDetail({ team }: TeamDetailProps) {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="contact" className="text-sm font-medium">
-                Contact Email
+              <label htmlFor="contact_email" className="text-sm font-medium">
+                Contact Emails
               </label>
               <Input
-                id="contact"
-                type="email"
-                value={contact}
-                onChange={(e) => setContact(e.target.value)}
-                placeholder="team@company.com"
+                id="contact_email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="team@company.com, support@company.com"
               />
+              <p className="text-xs text-muted-foreground">
+                Enter emails separated by commas
+              </p>
             </div>
+
+            {emails.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {(showAllEmails ? emails : emails.slice(0, 5)).map((email, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-3 py-1 rounded-lg bg-white/10 text-sm"
+                    >
+                      {email}
+                    </span>
+                  ))}
+                </div>
+                {emails.length > 5 && (
+                  <button
+                    onClick={() => setShowAllEmails(!showAllEmails)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showAllEmails ? (
+                      "Show less"
+                    ) : (
+                      <>
+                        ... +{emails.length - 5} more
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -126,15 +193,31 @@ export function TeamDetail({ team }: TeamDetailProps) {
             </div>
 
             {products.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {products.map((product, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center px-3 py-1 rounded-lg bg-white/10 text-sm"
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {(showAllProducts ? products : products.slice(0, 5)).map((product, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-3 py-1 rounded-lg bg-white/10 text-sm"
+                    >
+                      {product}
+                    </span>
+                  ))}
+                </div>
+                {products.length > 5 && (
+                  <button
+                    onClick={() => setShowAllProducts(!showAllProducts)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {product}
-                  </span>
-                ))}
+                    {showAllProducts ? (
+                      "Show less"
+                    ) : (
+                      <>
+                        ... +{products.length - 5} more
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </CardContent>
@@ -158,15 +241,31 @@ export function TeamDetail({ team }: TeamDetailProps) {
             </div>
 
             {issues.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {issues.map((issue, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center px-3 py-1 rounded-lg bg-white/10 text-sm"
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {(showAllIssues ? issues : issues.slice(0, 5)).map((issue, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center px-3 py-1 rounded-lg bg-white/10 text-sm"
+                    >
+                      {issue}
+                    </span>
+                  ))}
+                </div>
+                {issues.length > 5 && (
+                  <button
+                    onClick={() => setShowAllIssues(!showAllIssues)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {issue}
-                  </span>
-                ))}
+                    {showAllIssues ? (
+                      "Show less"
+                    ) : (
+                      <>
+                        ... +{issues.length - 5} more
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </CardContent>
@@ -178,11 +277,22 @@ export function TeamDetail({ team }: TeamDetailProps) {
         <div className="fixed bottom-0 left-64 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           <div className="container max-w-5xl py-4">
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={handleCancel}>
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSave}>
-                Save Changes
+              <Button onClick={handleSave} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
               </Button>
             </div>
           </div>

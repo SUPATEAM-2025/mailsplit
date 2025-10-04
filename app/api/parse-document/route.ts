@@ -117,13 +117,14 @@ async function parseWithOpenAI(text: string, apiKey: string) {
 Extract the following fields and return ONLY a valid JSON object:
 {
   "team_name": "string",
-  "description": "string",
+  "description": "string - MUST include email-to-responsibility mapping. Format: 'email1@example.com handles X responsibilities, email2@example.com handles Y responsibilities'. Include all other team details as well.",
   "products": ["array", "of", "strings"],
   "issues_handled": ["array", "of", "strings"],
-  "contact": "email@example.com"
+  "contact_email": ["array", "of", "email", "addresses"]
 }
 
-If any field cannot be found, make a reasonable inference based on the context. If you absolutely cannot determine a field, use an empty string or empty array.`,
+IMPORTANT: The description field MUST contain information about which email address handles which responsibilities. Format each email followed by their specific responsibilities.
+If any field cannot be found, make a reasonable inference based on the context. If you absolutely cannot determine a field, use an empty array.`,
         },
         {
           role: "user",
@@ -172,11 +173,13 @@ async function parseWithAnthropic(text: string, apiKey: string) {
           content: `Extract team information from this document and return ONLY a valid JSON object with these fields:
 {
   "team_name": "string",
-  "description": "string",
+  "description": "string - MUST include email-to-responsibility mapping. Format: 'email1@example.com handles X responsibilities, email2@example.com handles Y responsibilities'. Include all other team details as well.",
   "products": ["array", "of", "strings"],
   "issues_handled": ["array", "of", "strings"],
-  "contact": "email@example.com"
+  "contact_email": ["array", "of", "email", "addresses"]
 }
+
+IMPORTANT: The description field MUST contain information about which email address handles which responsibilities. Format each email followed by their specific responsibilities.
 
 Document:
 ${text.slice(0, 6000)}`,
@@ -251,6 +254,6 @@ function fallbackParse(text: string) {
     description: description || "Please provide a team description",
     products: [],
     issues_handled: [],
-    contact: contact || "team@example.com",
+    contact_email: contact ? [contact] : ["team@example.com"],
   };
 }

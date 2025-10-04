@@ -11,10 +11,9 @@ export interface Email {
 }
 
 export interface Team {
-  id: string;
   team_name: string;
   description: string;
   products: string[];
   issues_handled: string[];
-  contact: string;
+  contact_email: string | string[];
 }

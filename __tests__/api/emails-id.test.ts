@@ -1,6 +1,6 @@
 import { GET, PATCH } from '@/app/api/emails/[id]/route';
 import { NextRequest } from 'next/server';
-import { mockEmail } from '../setup/mocks';
+import { mockEmail } from '../setup/test-mocks';
 
 // Mock the supabase module
 jest.mock('@/lib/supabase', () => ({

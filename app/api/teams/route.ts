@@ -65,6 +65,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Trigger vector DB processing for the new document
+    const vectorDbUrl = process.env.SUPABASE_VECTOR_DB_API_URL;
+    if (vectorDbUrl && data?.id) {
+      try {
+        console.log(`Triggering vector DB processing for document ${data.id}`);
+        const response = await fetch(`${vectorDbUrl}/documents/process`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ document_id: data.id }),
+        });
+
+        if (!response.ok) {
+          console.error('Vector DB processing failed:', await response.text());
+        } else {
+          console.log('Vector DB processing triggered successfully');
+        }
+      } catch (vectorError) {
+        // Log error but don't fail the team creation
+        console.error('Error triggering vector DB processing:', vectorError);
+      }
+    }
+
     return NextResponse.json(team, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/teams:', error);
