@@ -13,7 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Plus, Upload } from "lucide-react";
-import { Team } from "@/lib/types";
+import { Team, TeamInput } from "@/lib/types";
 import { TeamForm } from "./team-form";
 import { DocumentUpload } from "./document-upload";
 
@@ -33,12 +33,10 @@ export function TeamList({ teams }: TeamListProps) {
     setShowForm(true);
   };
 
-  const handleSave = (team: Team) => {
+  const handleSave = (team: TeamInput) => {
     setShowForm(false);
     setExtractedData(null);
-    // Add the new team to local state immediately
-    setTeamList([team, ...teamList]);
-    // Also refresh the page to sync with server
+    // Refresh the page to sync with server
     router.refresh();
   };
 

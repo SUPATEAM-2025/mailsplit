@@ -1,6 +1,7 @@
 import { EmailSearchResults } from "@/components/email-search-results";
 import { fetchEmails, fetchTeams } from "@/lib/data-fetching";
 import { getSelectedCompanyId } from "@/lib/company-context";
+import { LoadingWrapper } from "@/components/loading-wrapper";
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,9 @@ export default async function HomePage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold">Emails</h1>
       </div>
-      <EmailSearchResults key={companyId} teams={teams} fallbackEmails={emails} />
+      <LoadingWrapper>
+        <EmailSearchResults key={companyId} teams={teams} fallbackEmails={emails} />
+      </LoadingWrapper>
     </div>
   );
 }

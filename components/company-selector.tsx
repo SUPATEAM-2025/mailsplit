@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { setSelectedCompanyId } from '@/lib/company-context';
 import { useRouter } from 'next/navigation';
+import { useCompanyTransition } from '@/lib/company-transition-context';
 
 interface Company {
   id: number;
@@ -26,6 +27,7 @@ export function CompanySelector({ initialCompanyId }: CompanySelectorProps) {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedId, setSelectedId] = useState<string>(initialCompanyId.toString());
   const [isPending, startTransition] = useTransition();
+  const { setIsPending } = useCompanyTransition();
   const router = useRouter();
 
   // Fetch companies on mount
@@ -47,6 +49,7 @@ export function CompanySelector({ initialCompanyId }: CompanySelectorProps) {
 
   const handleCompanyChange = (newCompanyId: string) => {
     setSelectedId(newCompanyId);
+    setIsPending(true);
 
     startTransition(async () => {
       try {
@@ -56,6 +59,8 @@ export function CompanySelector({ initialCompanyId }: CompanySelectorProps) {
         console.error('Failed to update company:', error);
         // Revert selection on error
         setSelectedId(initialCompanyId.toString());
+      } finally {
+        setIsPending(false);
       }
     });
   };

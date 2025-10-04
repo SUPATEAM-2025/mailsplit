@@ -67,7 +67,7 @@ export function EmailList({ emails, teams }: EmailListProps) {
               {assignedTeamsData.length > 0 && (
                 <div className="px-4 py-3 border-t bg-white/5">
                   <div className="flex items-center gap-2 text-sm flex-wrap">
-                    <span className="text-muted-foreground">Teams:</span>
+                    <span className="text-muted-foreground">Teams Assigned:</span>
                     {assignedTeamsData.slice(0, 2).map((team, index) => (
                       <div key={team.team_name} className="flex items-center gap-1">
                         <Badge variant="secondary" className="text-xs">

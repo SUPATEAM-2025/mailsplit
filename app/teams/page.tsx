@@ -1,6 +1,7 @@
 import { TeamSearchResults } from "@/components/team-search-results";
 import { fetchTeams } from "@/lib/data-fetching";
 import { getSelectedCompanyId } from "@/lib/company-context";
+import { LoadingWrapper } from "@/components/loading-wrapper";
 
 export const dynamic = 'force-dynamic';
 
@@ -10,5 +11,9 @@ export default async function TeamsPage() {
     getSelectedCompanyId(),
   ]);
 
-  return <TeamSearchResults key={companyId} fallbackTeams={teams} />;
+  return (
+    <LoadingWrapper>
+      <TeamSearchResults key={companyId} fallbackTeams={teams} />
+    </LoadingWrapper>
+  );
 }

@@ -30,7 +30,11 @@ export async function GET() {
     // Parse the docs field to get Team objects
     const teams: Team[] = documents.map((doc) => {
       try {
-        return JSON.parse(doc.docs || '{}');
+        const team = JSON.parse(doc.docs || '{}');
+        return {
+          ...team,
+          company_id: doc.company_id,
+        };
       } catch (e) {
         console.error('Error parsing team document:', e);
         return null;

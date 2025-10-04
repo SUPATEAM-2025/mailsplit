@@ -29,3 +29,6 @@ export interface Team {
   contact_email: string | string[];
   company_id: number;
 }
+
+// TeamInput is used for client-side team creation (company_id is set server-side)
+export type TeamInput = Omit<Team, 'company_id'>;

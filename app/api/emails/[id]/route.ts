@@ -27,6 +27,7 @@ function dbRowToEmail(row: Tables<'email'>): Email {
     preview: meta.preview || row.text?.substring(0, 100) || '',
     content: row.text || '',
     date: row.created_at || new Date().toISOString(),
+    company_id: row.company_id,
     assignedTeam: assignedTeams[0] || undefined, // Legacy: first team
     assignedTeams: assignedTeams.length > 0 ? assignedTeams : undefined,
     assignmentReason: meta.assignmentReason || undefined,

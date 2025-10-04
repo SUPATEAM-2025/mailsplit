@@ -70,6 +70,7 @@ export function TeamDetail({ team }: TeamDetailProps) {
       products: productsInput.split(",").map((p) => p.trim()).filter(Boolean),
       issues_handled: issuesInput.split(",").map((i) => i.trim()).filter(Boolean),
       contact_email: contactEmail.split(",").map((e) => e.trim()).filter(Boolean),
+      company_id: team.company_id,
     };
 
     setIsSubmitting(true);

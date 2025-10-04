@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mail, Users } from "lucide-react";
+import { Mail, Users, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -15,6 +15,12 @@ const navItems = [
     title: "Teams",
     href: "/teams",
     icon: Users,
+  },
+  {
+    title: "User Guide",
+    href: "/user-guide",
+    icon: BookOpen,
+    hasDivider: true,
   },
 ];
 
@@ -36,6 +42,9 @@ export function Sidebar() {
 
               return (
                 <li key={item.href}>
+                  {item.hasDivider && (
+                    <div className="my-3 border-t border-border" />
+                  )}
                   <Link
                     href={item.href}
                     className={cn(

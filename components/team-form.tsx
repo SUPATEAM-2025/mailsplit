@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { X, Loader2 } from "lucide-react";
-import { Team } from "@/lib/types";
+import { Team, TeamInput } from "@/lib/types";
 import { toast } from "sonner";
 
 interface TeamFormProps {
   initialData?: Partial<Team> | null;
   onClose: () => void;
-  onSave: (team: Team) => void;
+  onSave: (team: TeamInput) => void;
 }
 
 export function TeamForm({ initialData, onClose, onSave }: TeamFormProps) {
@@ -32,7 +32,7 @@ export function TeamForm({ initialData, onClose, onSave }: TeamFormProps) {
 
     if (isSubmitting) return; // Prevent multiple submissions
 
-    const team: Team = {
+    const team: TeamInput = {
       team_name: formData.team_name,
       description: formData.description,
       products: formData.products.split(",").map((p) => p.trim()).filter(Boolean),
