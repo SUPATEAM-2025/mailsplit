@@ -14,7 +14,7 @@ interface TeamPageProps {
 }
 
 export default async function TeamPage({ params }: TeamPageProps) {
-  const team = await fetchTeamByName(params.id);
+  const team = await fetchTeamByName(decodeURIComponent(params.id));
 
   if (!team) {
     notFound();
