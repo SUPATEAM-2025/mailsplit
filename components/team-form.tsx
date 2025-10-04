@@ -23,7 +23,7 @@ export function TeamForm({ initialData, onClose, onSave }: TeamFormProps) {
     contact: initialData?.contact || "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const team: Team = {
@@ -35,7 +35,24 @@ export function TeamForm({ initialData, onClose, onSave }: TeamFormProps) {
       contact: formData.contact,
     };
 
-    onSave(team);
+    try {
+      const response = await fetch('/api/teams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(team),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save team');
+      }
+
+      onSave(team);
+    } catch (error) {
+      console.error('Error saving team:', error);
+      alert('Failed to save team. Please try again.');
+    }
   };
 
   return (

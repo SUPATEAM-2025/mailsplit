@@ -1,24 +1,53 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Plus, Upload } from "lucide-react";
 import { Team } from "@/lib/types";
+import { TeamForm } from "./team-form";
+import { DocumentUpload } from "./document-upload";
 
 interface TeamListProps {
   teams: Team[];
 }
 
 export function TeamList({ teams }: TeamListProps) {
+  const router = useRouter();
+  const [showForm, setShowForm] = useState(false);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [extractedData, setExtractedData] = useState<Partial<Team> | null>(null);
+  const [teamList, setTeamList] = useState(teams);
+
   const handleCreate = () => {
-    // TODO: Implement create team flow
-    console.log("Create team");
+    setExtractedData(null);
+    setShowForm(true);
+  };
+
+  const handleSave = (team: Team) => {
+    setShowForm(false);
+    setExtractedData(null);
+    // Refresh the page to get updated data from the server
+    router.refresh();
   };
 
   const handleUpload = () => {
-    // TODO: Implement upload document flow
-    console.log("Upload document");
+    setShowUploadDialog(true);
+  };
+
+  const handleDataExtracted = (data: Partial<Team>) => {
+    setExtractedData(data);
+    setShowUploadDialog(false);
+    setShowForm(true);
   };
 
   return (
@@ -37,8 +66,35 @@ export function TeamList({ teams }: TeamListProps) {
         </div>
       </div>
 
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Team Document</DialogTitle>
+            <DialogDescription>
+              Upload a document containing team information. We'll automatically
+              extract and fill in the team details for you to review.
+            </DialogDescription>
+          </DialogHeader>
+          <DocumentUpload
+            onDataExtracted={handleDataExtracted}
+            onClose={() => setShowUploadDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {showForm && (
+        <TeamForm
+          initialData={extractedData}
+          onClose={() => {
+            setShowForm(false);
+            setExtractedData(null);
+          }}
+          onSave={handleSave}
+        />
+      )}
+
       <div className="space-y-6">
-        {teams.map((team) => (
+        {teamList.map((team) => (
           <Link key={team.id} href={`/teams/${team.id}`} className="block">
             <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
               <CardHeader>

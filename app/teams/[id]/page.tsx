@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { TeamDetail } from "@/components/team-detail";
-import { mockTeams } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -11,8 +10,20 @@ interface TeamPageProps {
   };
 }
 
-export default function TeamPage({ params }: TeamPageProps) {
-  const team = mockTeams.find((t) => t.id === params.id);
+async function getTeam(id: string) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'http://localhost:3000' : ''}/api/teams/${id}`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    return null;
+  }
+
+  return res.json();
+}
+
+export default async function TeamPage({ params }: TeamPageProps) {
+  const team = await getTeam(params.id);
 
   if (!team) {
     notFound();

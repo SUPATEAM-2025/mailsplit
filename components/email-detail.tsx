@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -21,6 +21,42 @@ interface EmailDetailProps {
 export function EmailDetail({ email, teams }: EmailDetailProps) {
   const [assignedTeam, setAssignedTeam] = useState(email.assignedTeam || "");
   const [notes, setNotes] = useState(email.notes || "");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Auto-save when assignedTeam or notes change
+  useEffect(() => {
+    const hasChanges =
+      assignedTeam !== (email.assignedTeam || "") ||
+      notes !== (email.notes || "");
+
+    if (!hasChanges) return;
+
+    const saveTimeout = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        const response = await fetch(`/api/emails/${email.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            assignedTeam: assignedTeam || undefined,
+            notes: notes || undefined,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save changes');
+        }
+      } catch (error) {
+        console.error('Error saving changes:', error);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000); // Debounce for 1 second
+
+    return () => clearTimeout(saveTimeout);
+  }, [assignedTeam, notes, email.id, email.assignedTeam, email.notes]);
 
   const selectedTeam = teams.find((team) => team.id === assignedTeam);
 
@@ -50,7 +86,12 @@ export function EmailDetail({ email, teams }: EmailDetailProps) {
       {/* Team Assignment */}
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold">Team Assignment</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Team Assignment</h3>
+            {isSaving && (
+              <span className="text-xs text-muted-foreground">Saving...</span>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <Select value={assignedTeam} onValueChange={setAssignedTeam}>
