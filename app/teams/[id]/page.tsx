@@ -3,6 +3,9 @@ import { TeamDetail } from "@/components/team-detail";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { fetchTeamByName } from "@/lib/data-fetching";
+
+export const dynamic = 'force-dynamic';
 
 interface TeamPageProps {
   params: {
@@ -10,20 +13,8 @@ interface TeamPageProps {
   };
 }
 
-async function getTeam(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'http://localhost:3000' : ''}/api/teams/${id}`, {
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    return null;
-  }
-
-  return res.json();
-}
-
 export default async function TeamPage({ params }: TeamPageProps) {
-  const team = await getTeam(params.id);
+  const team = await fetchTeamByName(params.id);
 
   if (!team) {
     notFound();

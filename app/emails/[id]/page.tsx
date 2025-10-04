@@ -3,6 +3,9 @@ import { EmailDetail } from "@/components/email-detail";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { fetchEmailById, fetchTeams } from "@/lib/data-fetching";
+
+export const dynamic = 'force-dynamic';
 
 interface EmailPageProps {
   params: {
@@ -10,34 +13,10 @@ interface EmailPageProps {
   };
 }
 
-async function getEmail(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'http://localhost:3000' : ''}/api/emails/${id}`, {
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    return null;
-  }
-
-  return res.json();
-}
-
-async function getTeams() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'http://localhost:3000' : ''}/api/teams`, {
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    return [];
-  }
-
-  return res.json();
-}
-
 export default async function EmailPage({ params }: EmailPageProps) {
   const [email, teams] = await Promise.all([
-    getEmail(params.id),
-    getTeams(),
+    fetchEmailById(params.id),
+    fetchTeams(),
   ]);
 
   if (!email) {

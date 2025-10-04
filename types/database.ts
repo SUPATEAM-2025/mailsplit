@@ -70,11 +70,14 @@ export type Database = {
           attachments: Json | null
           company_id: number
           created_at: string | null
+          extracted_contacts: Json | null
           flag_notes: string | null
           flagged: boolean | null
           from: string
           id: number
           meta: Json | null
+          processed_at: string | null
+          processing_status: string | null
           subject: string | null
           text: string | null
           updated_at: string | null
@@ -84,11 +87,14 @@ export type Database = {
           attachments?: Json | null
           company_id: number
           created_at?: string | null
+          extracted_contacts?: Json | null
           flag_notes?: string | null
           flagged?: boolean | null
           from: string
           id?: number
           meta?: Json | null
+          processed_at?: string | null
+          processing_status?: string | null
           subject?: string | null
           text?: string | null
           updated_at?: string | null
@@ -98,11 +104,14 @@ export type Database = {
           attachments?: Json | null
           company_id?: number
           created_at?: string | null
+          extracted_contacts?: Json | null
           flag_notes?: string | null
           flagged?: boolean | null
           from?: string
           id?: number
           meta?: Json | null
+          processed_at?: string | null
+          processing_status?: string | null
           subject?: string | null
           text?: string | null
           updated_at?: string | null

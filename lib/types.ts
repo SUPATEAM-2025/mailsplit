@@ -1,3 +1,9 @@
+export interface ExtractedContact {
+  team_name: string;
+  contact_email: string;
+  document_id: number;
+}
+
 export interface Email {
   id: string;
   from: string;
@@ -5,9 +11,14 @@ export interface Email {
   preview: string;
   content: string;
   date: string;
-  assignedTeam?: string;
+  company_id: number;
+  assignedTeam?: string; // Legacy: single team assignment
+  assignedTeams?: string[]; // New: multiple team assignments
   assignmentReason?: string;
   notes?: string;
+  extractedContacts?: ExtractedContact[];
+  processingStatus?: string;
+  processedAt?: string;
 }
 
 export interface Team {
@@ -16,4 +27,5 @@ export interface Team {
   products: string[];
   issues_handled: string[];
   contact_email: string | string[];
+  company_id: number;
 }

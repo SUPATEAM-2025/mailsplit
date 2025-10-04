@@ -1,19 +1,14 @@
-import { TeamList } from "@/components/team-list";
+import { TeamSearchResults } from "@/components/team-search-results";
+import { fetchTeams } from "@/lib/data-fetching";
+import { getSelectedCompanyId } from "@/lib/company-context";
 
-async function getTeams() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'http://localhost:3000' : ''}/api/teams`, {
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    console.error('Failed to fetch teams');
-    return [];
-  }
-
-  return res.json();
-}
+export const dynamic = 'force-dynamic';
 
 export default async function TeamsPage() {
-  const teams = await getTeams();
-  return <TeamList teams={teams} />;
+  const [teams, companyId] = await Promise.all([
+    fetchTeams(),
+    getSelectedCompanyId(),
+  ]);
+
+  return <TeamSearchResults key={companyId} fallbackTeams={teams} />;
 }

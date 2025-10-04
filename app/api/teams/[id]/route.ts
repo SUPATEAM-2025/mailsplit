@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, getOrCreateDefaultCompany } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { getSelectedCompanyId } from '@/lib/company-context';
 import { Team } from '@/lib/types';
 
 interface RouteParams {
@@ -11,13 +12,13 @@ interface RouteParams {
 // GET single team by team_name
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const company = await getOrCreateDefaultCompany();
+    const companyId = await getSelectedCompanyId();
     const teamName = decodeURIComponent(params.id);
 
     const { data: documents, error } = await supabase
       .from('documents')
       .select('*')
-      .eq('company_id', company.id);
+      .eq('company_id', companyId);
 
     if (error) {
       console.error('Error fetching team:', error);
@@ -53,14 +54,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const updatedTeam: Team = await request.json();
-    const company = await getOrCreateDefaultCompany();
+    const companyId = await getSelectedCompanyId();
     const teamName = decodeURIComponent(params.id);
 
     // Find the document with the matching team_name
     const { data: documents, error: fetchError } = await supabase
       .from('documents')
       .select('*')
-      .eq('company_id', company.id);
+      .eq('company_id', companyId);
 
     if (fetchError) {
       console.error('Error fetching team:', fetchError);
@@ -104,14 +105,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 // DELETE team
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const company = await getOrCreateDefaultCompany();
+    const companyId = await getSelectedCompanyId();
     const teamName = decodeURIComponent(params.id);
 
     // Find the document with the matching team_name
     const { data: documents, error: fetchError } = await supabase
       .from('documents')
       .select('*')
-      .eq('company_id', company.id);
+      .eq('company_id', companyId);
 
     if (fetchError) {
       console.error('Error fetching team:', fetchError);

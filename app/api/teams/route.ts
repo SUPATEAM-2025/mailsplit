@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, getOrCreateDefaultCompany } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { getSelectedCompanyId } from '@/lib/company-context';
 import { Team } from '@/lib/types';
 import { mockTeams } from '@/lib/data';
+import { syncTeamToAlgolia, syncTeamsToAlgolia } from '@/lib/algolia-sync';
 
 // GET all teams
 export async function GET() {
   try {
-    const company = await getOrCreateDefaultCompany();
+    const companyId = await getSelectedCompanyId();
 
     const { data: documents, error } = await supabase
       .from('documents')
       .select('*')
-      .eq('company_id', company.id)
+      .eq('company_id', companyId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -21,7 +23,7 @@ export async function GET() {
 
     // If no teams exist, seed with mock data
     if (!documents || documents.length === 0) {
-      const seedTeams = await seedMockTeams(company.id);
+      const seedTeams = await seedMockTeams(companyId);
       return NextResponse.json(seedTeams);
     }
 
@@ -34,6 +36,11 @@ export async function GET() {
         return null;
       }
     }).filter(Boolean);
+
+    // Sync to Algolia in background (don't await to avoid blocking response)
+    syncTeamsToAlgolia(teams).catch(err =>
+      console.error('Failed to sync teams to Algolia:', err)
+    );
 
     return NextResponse.json(teams);
   } catch (error) {
@@ -49,12 +56,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const team: Team = await request.json();
-    const company = await getOrCreateDefaultCompany();
+    const companyId = await getSelectedCompanyId();
 
     const { data, error } = await supabase
       .from('documents')
       .insert({
-        company_id: company.id,
+        company_id: companyId,
         docs: JSON.stringify(team),
       })
       .select()
@@ -88,6 +95,11 @@ export async function POST(request: NextRequest) {
         console.error('Error triggering vector DB processing:', vectorError);
       }
     }
+
+    // Sync to Algolia in background
+    syncTeamToAlgolia(team).catch(err =>
+      console.error('Failed to sync team to Algolia:', err)
+    );
 
     return NextResponse.json(team, { status: 201 });
   } catch (error) {

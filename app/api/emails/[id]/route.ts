@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, getOrCreateDefaultCompany } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { getSelectedCompanyId } from '@/lib/company-context';
 import { Email } from '@/lib/types';
 import { Tables } from '@/types/database';
 
@@ -13,6 +14,12 @@ interface RouteParams {
 function dbRowToEmail(row: Tables<'email'>): Email {
   const meta = row.meta as { preview?: string; assignmentReason?: string } || {};
 
+  // Parse assigned teams from comma-separated string
+  // NOTE: assigned_to column is deprecated for extracted contacts.
+  // extracted_contacts is the source of truth for initial team assignments.
+  // assigned_to is still used for storage of user-selected teams.
+  const assignedTeams = row.assigned_to ? row.assigned_to.split(',').filter(t => t.trim()) : [];
+
   return {
     id: row.id.toString(),
     from: row.from,
@@ -20,22 +27,26 @@ function dbRowToEmail(row: Tables<'email'>): Email {
     preview: meta.preview || row.text?.substring(0, 100) || '',
     content: row.text || '',
     date: row.created_at || new Date().toISOString(),
-    assignedTeam: row.assigned_to || undefined,
+    assignedTeam: assignedTeams[0] || undefined, // Legacy: first team
+    assignedTeams: assignedTeams.length > 0 ? assignedTeams : undefined,
     assignmentReason: meta.assignmentReason || undefined,
     notes: row.flag_notes || undefined,
+    extractedContacts: row.extracted_contacts ? (row.extracted_contacts as any) : undefined,
+    processingStatus: row.processing_status || undefined,
+    processedAt: row.processed_at || undefined,
   };
 }
 
 // GET single email by ID
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const company = await getOrCreateDefaultCompany();
+    const companyId = await getSelectedCompanyId();
 
     const { data: emailRow, error } = await supabase
       .from('email')
       .select('*')
       .eq('id', parseInt(params.id))
-      .eq('company_id', company.id)
+      .eq('company_id', companyId)
       .single();
 
     if (error) {
@@ -61,13 +72,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const updates: Partial<Email> = await request.json();
-    const company = await getOrCreateDefaultCompany();
+    const companyId = await getSelectedCompanyId();
 
     // Build the update object for the database
     const dbUpdates: Partial<Tables<'email'>> = {};
 
-    if (updates.assignedTeam !== undefined) {
-      dbUpdates.assigned_to = updates.assignedTeam || null;
+    // Support both legacy assignedTeam and new assignedTeams
+    if (updates.assignedTeam !== undefined || updates.assignedTeams !== undefined) {
+      const teamsArray = updates.assignedTeams || (updates.assignedTeam ? [updates.assignedTeam] : []);
+      dbUpdates.assigned_to = teamsArray.length > 0 ? teamsArray.join(',') : null;
     }
 
     if (updates.notes !== undefined) {
@@ -82,6 +95,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       dbUpdates.text = updates.content || null;
     }
 
+    if (updates.extractedContacts !== undefined) {
+      dbUpdates.extracted_contacts = updates.extractedContacts ? JSON.parse(JSON.stringify(updates.extractedContacts)) : null;
+    }
+
+    if (updates.processingStatus !== undefined) {
+      dbUpdates.processing_status = updates.processingStatus || null;
+    }
+
+    if (updates.processedAt !== undefined) {
+      dbUpdates.processed_at = updates.processedAt || null;
+    }
+
     // Update meta field if needed
     if (updates.assignmentReason !== undefined || updates.preview !== undefined) {
       // First fetch the current meta
@@ -89,7 +114,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         .from('email')
         .select('meta')
         .eq('id', parseInt(params.id))
-        .eq('company_id', company.id)
+        .eq('company_id', companyId)
         .single();
 
       const currentMeta = currentEmail?.meta as { preview?: string; assignmentReason?: string } || {};
@@ -107,7 +132,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .from('email')
       .update(dbUpdates)
       .eq('id', parseInt(params.id))
-      .eq('company_id', company.id)
+      .eq('company_id', companyId)
       .select()
       .single();
 
