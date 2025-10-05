@@ -24,14 +24,20 @@ export async function POST(request: NextRequest) {
     if (file.type === "text/plain" || file.type === "text/markdown") {
       text = new TextDecoder().decode(buffer);
     } else if (file.type === "application/pdf") {
-      // PDF parsing - will need pdf-parse library
+      // PDF parsing with pdfjs-dist (serverless-compatible)
       try {
-        const pdfParse = require("pdf-parse");
-        const pdfData = await pdfParse(Buffer.from(buffer));
-        text = pdfData.text;
+        const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
+        const pages = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          pages.push(content.items.map((item: any) => item.str).join(" "));
+        }
+        text = pages.join("\n");
       } catch (err) {
         return NextResponse.json(
-          { error: "PDF parsing library not installed. Run: npm install pdf-parse" },
+          { error: "PDF parsing failed" },
           { status: 500 }
         );
       }
