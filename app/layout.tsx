@@ -8,6 +8,7 @@ import { getSelectedCompanyId } from "@/lib/company-context";
 import { SearchProvider } from "@/components/search-provider";
 // import { HeaderSearch } from "@/components/header-search";
 import { CompanyTransitionProvider } from "@/lib/company-transition-context";
+import { headers } from "next/headers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,22 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const selectedCompanyId = await getSelectedCompanyId();
+  const headersList = headers();
+  const pathname = headersList.get("x-pathname") || "";
+
+  // Don't render the sidebar/header for the landing page
+  const isLandingPage = pathname === "/landing";
+
+  if (isLandingPage) {
+    return (
+      <html lang="en">
+        <body className={inter.className}>
+          {children}
+          <Toaster />
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html lang="en">
