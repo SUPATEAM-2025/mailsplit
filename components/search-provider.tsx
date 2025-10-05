@@ -4,6 +4,7 @@ import { ReactNode, Component, ErrorInfo } from 'react';
 import { InstantSearch, Configure } from 'react-instantsearch';
 import { usePathname } from 'next/navigation';
 import { searchClient, EMAILS_INDEX, TEAMS_INDEX, isAlgoliaConfigured } from '@/lib/algolia-client';
+import { FallbackSearchProvider } from '@/lib/search-context';
 
 interface SearchProviderProps {
   children: ReactNode;
@@ -46,15 +47,14 @@ export function SearchProvider({ children, companyId }: SearchProviderProps) {
   const isTeamsPage = pathname.startsWith('/teams');
   const indexName = isTeamsPage ? TEAMS_INDEX : EMAILS_INDEX;
 
-  // Only wrap with InstantSearch if Algolia is configured
+  // If Algolia is not configured, use fallback search provider
   if (!isAlgoliaConfigured) {
-    return <>{children}</>;
+    return <FallbackSearchProvider companyId={companyId}>{children}</FallbackSearchProvider>;
   }
 
   return (
     <AlgoliaErrorBoundary>
       <InstantSearch
-        key={companyId}
         searchClient={searchClient}
         indexName={indexName}
       >

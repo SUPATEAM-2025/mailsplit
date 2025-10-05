@@ -6,7 +6,7 @@ import { CompanySelector } from "@/components/company-selector";
 import { Toaster } from "@/components/ui/sonner";
 import { getSelectedCompanyId } from "@/lib/company-context";
 import { SearchProvider } from "@/components/search-provider";
-import { HeaderSearch } from "@/components/header-search";
+// import { HeaderSearch } from "@/components/header-search";
 import { CompanyTransitionProvider } from "@/lib/company-transition-context";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -33,9 +33,9 @@ export default async function RootLayout({
               <SearchProvider companyId={selectedCompanyId}>
                 <header className="border-b bg-background sticky top-0 z-10">
                   <div className="container max-w-5xl h-14 flex items-center justify-end px-6 relative">
-                    <div className="absolute left-1/2 -translate-x-1/2">
+                    {/* <div className="absolute left-1/2 -translate-x-1/2">
                       <HeaderSearch />
-                    </div>
+                    </div> */}
                     <CompanySelector initialCompanyId={selectedCompanyId} />
                   </div>
                 </header>
